@@ -23,7 +23,7 @@ Material:
   m_CustomRenderQueue: -1
   stringTagMap: {}
   disabledShaderPasses: []
-  m_LockedProperties: 
+  m_LockedProperties: _LeafNormalMap
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -199,6 +199,7 @@ Material:
     - _FrostingFalloff: 1
     - _FrostingHeight: 1
     - _FrostingSwitch: 0
+    - _FrostingWorldObjectSwitch2: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1

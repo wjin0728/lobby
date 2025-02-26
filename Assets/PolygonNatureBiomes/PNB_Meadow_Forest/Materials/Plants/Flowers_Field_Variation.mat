@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Flowers_Field_Variation
-  m_Shader: {fileID: 4800000, guid: 6697e1f185bc8b840a2f02567abf15b5, type: 3}
+  m_Shader: {fileID: 4800000, guid: e5cf341aa7a312c4aa1dde88e8f1d2ad, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -206,6 +206,7 @@ Material:
     - _FrostingFalloff: 1
     - _FrostingHeight: 1
     - _FrostingSwitch: 0
+    - _FrostingWorldObjectSwitch2: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
