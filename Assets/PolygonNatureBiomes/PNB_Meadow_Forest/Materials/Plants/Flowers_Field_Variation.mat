@@ -228,7 +228,7 @@ Material:
     - _LeafMetallic: 0
     - _LeafNoiseAmount: 0.371
     - _LeafNoiseScale: 1
-    - _LeafNormalAmount: 0.5
+    - _LeafNormalAmount: 0.417
     - _LeafSmoothness: 0.2
     - _Metallic: 0.132
     - _Mode: 0
@@ -256,8 +256,8 @@ Material:
     - _TotalWindAmount: 0.5
     - _TrunkFlatColourSwitch: 0
     - _TrunkMetallic: 0
-    - _TrunkNormalAmount: 0.5
-    - _TrunkSmoothness: 0.2
+    - _TrunkNormalAmount: 0.374
+    - _TrunkSmoothness: 0.165
     - _UVSec: 0
     - _WindAmount: 1
     - _WindBaseline: 0

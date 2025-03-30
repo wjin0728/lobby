@@ -544,21 +544,24 @@ Shader "SyntyStudios/SkyboxUnlit"
 				#endif
 				
 
-				float3 BaseColor = float3(0.5, 0.5, 0.5);
-				float3 Normal = float3(0, 0, 1);
+				float3 BaseColor = float3(0.4, 0.4, 0.4);
+				float3 Normal = float3(0, 1, 0);
 				float3 Emission = staticSwitch20.rgb;
-				float3 Specular = 0.5;
+				float3 Specular = 0.0;
 				float Metallic = 0;
-				float Smoothness = 0.5;
+				float Smoothness = 0.0;
+
+				return float4((Emission), 1.0);
+
 				float Occlusion = 1;
-				float Alpha = 1;
+				float Alpha = 0;
 				float AlphaClipThreshold = 0.5;
 				float AlphaClipThresholdShadow = 0.5;
 				float3 BakedGI = 0;
-				float3 RefractionColor = 1;
-				float RefractionIndex = 1;
-				float3 Transmission = 1;
-				float3 Translucency = 1;
+				float3 RefractionColor = 0;
+				float RefractionIndex = 0;
+				float3 Transmission = 0;
+				float3 Translucency = 0;
 
 				#ifdef ASE_DEPTH_WRITE_ON
 					float DepthValue = IN.positionCS.z;
@@ -635,15 +638,15 @@ Shader "SyntyStudios/SkyboxUnlit"
 
 				SurfaceData surfaceData;
 				surfaceData.albedo              = BaseColor;
-				surfaceData.metallic            = saturate(Metallic);
+				surfaceData.metallic            = 0;
 				surfaceData.specular            = Specular;
-				surfaceData.smoothness          = saturate(Smoothness),
+				surfaceData.smoothness          = 0,
 				surfaceData.occlusion           = Occlusion,
 				surfaceData.emission            = Emission,
 				surfaceData.alpha               = saturate(Alpha);
 				surfaceData.normalTS            = Normal;
 				surfaceData.clearCoatMask       = 0;
-				surfaceData.clearCoatSmoothness = 1;
+				surfaceData.clearCoatSmoothness = 0;
 
 				#ifdef _CLEARCOAT
 					surfaceData.clearCoatMask       = saturate(CoatMask);

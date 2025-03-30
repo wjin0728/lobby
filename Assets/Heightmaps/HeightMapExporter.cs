@@ -38,10 +38,11 @@ public class ExportHeightmapToRaw
         {
             Debug.LogWarning($"Heightmap 해상도가 {res}x{res}입니다. 513x513이 아닌 경우 주의하세요.");
         }
-
         float[,] heights = terrain.GetHeights(0, 0, res, res);
 
-        string filePath = EditorUtility.SaveFilePanel("Save RAW Heightmap", "Assets", "heightmap.raw", "raw");
+        string name = string.Copy(terrain.name).Replace(" ", "_") + "Heightmap";
+
+        string filePath = EditorUtility.SaveFilePanel("Save RAW Heightmap", "Assets", name + ".raw", "raw");
         if (string.IsNullOrEmpty(filePath)) return;
 
         using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create)))
@@ -50,7 +51,7 @@ public class ExportHeightmapToRaw
             {
                 for (int x = 0; x < res; x++)
                 {
-                    ushort value = (ushort)(heights[y, x] * 65535f);
+                    float value = heights[y, x];
                     writer.Write(value);
                 }
             }

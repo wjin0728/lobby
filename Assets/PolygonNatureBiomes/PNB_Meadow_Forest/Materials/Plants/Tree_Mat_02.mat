@@ -8,15 +8,12 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Tree_Mat_02
-  m_Shader: {fileID: 4800000, guid: 6697e1f185bc8b840a2f02567abf15b5, type: 3}
+  m_Shader: {fileID: 4800000, guid: e5cf341aa7a312c4aa1dde88e8f1d2ad, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
   m_InvalidKeywords:
   - _ALPHATEST_ON
-  - _FLATCOLOURSWITCH_ON
-  - _FROSTINGSWITCH_ON
-  - _LEAFFLATCOLOURSWITCH_ON
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -201,14 +198,15 @@ Material:
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _EmissiveAmount: 0.05
+    - _EmissiveAmount: 0
     - _EnvironmentReflections: 1
     - _FlatColourSwitch: 1
     - _Float0: 0.5
     - _Float1: 0.05
     - _FrostingFalloff: 0.94
     - _FrostingHeight: 1
-    - _FrostingSwitch: 1
+    - _FrostingSwitch: 0
+    - _FrostingWorldObjectSwitch2: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
@@ -230,7 +228,7 @@ Material:
     - _LeafMetallic: 0
     - _LeafNoiseAmount: 0.017
     - _LeafNoiseScale: 1
-    - _LeafNormalAmount: 0.5
+    - _LeafNormalAmount: 0.352
     - _LeafSmoothness: 0.2
     - _Metallic: 0.132
     - _Mode: 0
@@ -258,8 +256,8 @@ Material:
     - _TotalWindAmount: 0.5
     - _TrunkFlatColourSwitch: 0
     - _TrunkMetallic: 0
-    - _TrunkNormalAmount: 0.5
-    - _TrunkSmoothness: 0.2
+    - _TrunkNormalAmount: 0.305
+    - _TrunkSmoothness: 0.23
     - _UVSec: 0
     - _WindAmount: 1
     - _WindBaseline: 0
@@ -293,7 +291,7 @@ Material:
     - _FrostingColour: {r: 0.6037736, g: 0.5465179, b: 0.0768957, a: 0}
     - _GustHighlight: {r: 0.1132075, g: 0.1132075, b: 0.1132075, a: 0}
     - _GustSmoothing: {r: 0.5, g: 0.5, b: 0.5, a: 0}
-    - _LeafBaseColour: {r: 0.51876795, g: 0.5803922, b: 0, a: 0}
+    - _LeafBaseColour: {r: 0, g: 0, b: 0, a: 0}
     - _LeafNoiseColour: {r: 0.759, g: 0.5559554, b: 0, a: 0}
     - _LeafNoiseLargeColour: {r: 0.44705883, g: 0.2794033, b: 0, a: 0}
     - _LeafTint: {r: 0.07843138, g: 0.02015968, b: 0, a: 0}

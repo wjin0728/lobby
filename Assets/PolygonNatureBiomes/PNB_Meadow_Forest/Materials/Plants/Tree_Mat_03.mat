@@ -15,7 +15,7 @@ Material:
   m_InvalidKeywords:
   - _ALPHATEST_ON
   m_LightmapFlags: 0
-  m_EnableInstancingVariants: 0
+  m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap: {}
@@ -186,15 +186,15 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AlphaClip: 1
+    - _AlphaClip: 0.5
     - _AlphaCutoff: 0.5
     - _Big_Wave: 10
     - _Big_WindAmount: 1.22
     - _Big_Windspeed: 1.84
     - _BumpScale: 1
-    - _ColourNoiseLargeScale: 0.706
+    - _ColourNoiseLargeScale: 0.74
     - _ColourNoiseScale: 0
-    - _ColourNoiseSmallScale: 0.531
+    - _ColourNoiseSmallScale: 0.563
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
@@ -203,8 +203,8 @@ Material:
     - _FlatColourSwitch: 0
     - _Float0: 0.5
     - _Float1: 0.05
-    - _FrostingFalloff: 0.8
-    - _FrostingHeight: 1.8
+    - _FrostingFalloff: 0.94
+    - _FrostingHeight: 0.95
     - _FrostingSwitch: 0
     - _FrostingWorldObjectSwitch2: 0
     - _GlossMapScale: 1
@@ -228,7 +228,7 @@ Material:
     - _LeafMetallic: 0
     - _LeafNoiseAmount: 0.017
     - _LeafNoiseScale: 1
-    - _LeafNormalAmount: 0.5
+    - _LeafNormalAmount: 0
     - _LeafSmoothness: 0.2
     - _Metallic: 0.132
     - _Mode: 0
@@ -287,7 +287,7 @@ Material:
     - _Color0: {r: 1, g: 1, b: 1, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Emissive2Colour: {r: 0, g: 0, b: 0, a: 0}
-    - _EmissiveColour: {r: 0, g: 0, b: 0, a: 0}
+    - _EmissiveColour: {r: 1, g: 1, b: 1, a: 0}
     - _FrostingColour: {r: 1, g: 1, b: 1, a: 0}
     - _GustHighlight: {r: 0.1132075, g: 0.1132075, b: 0.1132075, a: 0}
     - _GustSmoothing: {r: 0.5, g: 0.5, b: 0.5, a: 0}
@@ -297,7 +297,7 @@ Material:
     - _LeafTint: {r: 0.07843138, g: 0.02015968, b: 0, a: 0}
     - _SnowColour: {r: 0.7718434, g: 1, b: 0.1839623, a: 0}
     - _Tint: {r: 0, g: 0, b: 0, a: 0}
-    - _TrunkBaseColour: {r: 0.07843138, g: 0.02015968, b: 0, a: 0}
+    - _TrunkBaseColour: {r: 0, g: 0, b: 0, a: 0}
     - _TrunkEmissiveColour: {r: 0, g: 0, b: 0, a: 0}
     - _TrunkNoiseColour: {r: 0, g: 0, b: 0, a: 0}
     - _TrunkTint: {r: 0.07843138, g: 0.02015968, b: 0, a: 0}

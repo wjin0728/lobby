@@ -560,6 +560,8 @@ Shader "SyntyStudios/SkyboxUnlitNoFog"
 				float3 Transmission = 1;
 				float3 Translucency = 1;
 
+				return float4(BaseColor + Emission, 1.0);
+
 				#ifdef ASE_DEPTH_WRITE_ON
 					float DepthValue = IN.positionCS.z;
 				#endif

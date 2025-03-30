@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: BASEMat_02_Saturated
-  m_Shader: {fileID: 4800000, guid: 6697e1f185bc8b840a2f02567abf15b5, type: 3}
+  m_Shader: {fileID: 4800000, guid: e5cf341aa7a312c4aa1dde88e8f1d2ad, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -186,7 +186,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AlphaClip: 0.5
+    - _AlphaClip: 0.61
     - _AlphaCutoff: 0.5
     - _Big_Wave: 10
     - _Big_WindAmount: 1.22
@@ -206,6 +206,7 @@ Material:
     - _FrostingFalloff: 1
     - _FrostingHeight: 1
     - _FrostingSwitch: 0
+    - _FrostingWorldObjectSwitch2: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
@@ -228,7 +229,7 @@ Material:
     - _LeafNoiseAmount: 0.371
     - _LeafNoiseScale: 1
     - _LeafNormalAmount: 0.5
-    - _LeafSmoothness: 0.2
+    - _LeafSmoothness: 0.664
     - _Metallic: 0.132
     - _Mode: 0
     - _NormalAmount: 0.5
@@ -254,7 +255,7 @@ Material:
     - _Tint_Tiling: 0.5
     - _TotalWindAmount: 0.5
     - _TrunkFlatColourSwitch: 0
-    - _TrunkMetallic: 0
+    - _TrunkMetallic: 0.563
     - _TrunkNormalAmount: 0.5
     - _TrunkSmoothness: 0.2
     - _UVSec: 0

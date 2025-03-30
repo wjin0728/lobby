@@ -5,63 +5,606 @@ using UnityEditor;
 using System.IO;
 using System.Text;
 using UnityEditor.SearchService;
+using Unity.VisualScripting;
+using Unity.Mathematics;
 
-public class SceneObjectExporter
+public class MyBinaryWriter
 {
-    private static List<string> sceneUsingMeshNamesList = new List<string>();
-    private static List<string> sceneUsingMaterialNamesList = new List<string>();
-    private static List<string> m_pTextureNamesListForCounting = new List<string>();
-    private static List<string> m_pTextureNamesListForWriting = new List<string>();
+    private BinaryWriter writer = null;
 
-    private static BinaryWriter binaryWriter = null;
-    private static bool hasBounds = false;
-    private static Bounds combinedBounds = new(Vector3.zero, Vector3.zero);
-
-    [MenuItem("Scene/Export All Objects")]
-    static void ExportAllObjects()
+    public MyBinaryWriter(string filePath)
     {
-        // 현재 씬의 모든 GameObject 추출
-        GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
-        Dictionary<string, GameObject> prefabSources = new Dictionary<string, GameObject>();
+        writer = new BinaryWriter(File.Open(filePath, FileMode.OpenOrCreate));
+    }
 
-        ExportResources();
+    ~MyBinaryWriter()
+    {
+    }
 
-        /*string filePath = EditorUtility.SaveFilePanel("Save Scene bin", "Assets", "Scene.bin", "bin");
-        if (string.IsNullOrEmpty(filePath)) return;
+    public void Close()
+    {
+        writer.Close();
+    }
 
-        binaryWriter = new BinaryWriter(File.Open(filePath, FileMode.Create));
+    public void WriteObjectName(Object obj)
+    {
+        writer.Write((obj) ? string.Copy(obj.name).Replace(" ", "_") : "null");
+    }
 
-        WriteString("<Prefabs:>");
-        foreach (GameObject obj in allObjects)
+    public void WriteObjectName(string strHeader, Object obj)
+    {
+        writer.Write(strHeader);
+        writer.Write((obj) ? string.Copy(obj.name).Replace(" ", "_") : "null");
+    }
+
+    public void WriteString(string strToWrite)
+    {
+        writer.Write(strToWrite);
+    }
+
+    public void WriteString(string strToWrite, int i)
+    {
+        writer.Write(strToWrite);
+        writer.Write(i);
+    }
+
+    public void WriteTextureName(string strHeader, Texture texture)
+    {
+        writer.Write(strHeader);
+        if (texture)
         {
-            if (PrefabUtility.IsPartOfPrefabInstance(obj))
-            {
-                GameObject prefabSource = (GameObject)PrefabUtility.GetCorrespondingObjectFromSource(obj);
+            writer.Write(string.Copy(texture.name).Replace(" ", "_"));
+        }
+        else
+        {
+            writer.Write("null");
+        }
+    }
+    public void WriteTextureName(Texture texture)
+    {
+        if (texture)
+        {
+            writer.Write(string.Copy(texture.name).Replace(" ", "_"));
+        }
+        else
+        {
+            writer.Write("null");
+        }
+    }
 
-                string prefabPath = AssetDatabase.GetAssetPath(prefabSource);
-                if (!prefabSources.ContainsKey(prefabPath))
+    public void WriteInteger(int i)
+    {
+        writer.Write(i);
+    }
+
+    public void WriteInteger(string strHeader, int i)
+    {
+        writer.Write(strHeader);
+        writer.Write(i);
+    }
+
+    public void WriteFloat(string strHeader, float f)
+    {
+        writer.Write(strHeader);
+        writer.Write(f);
+    }
+    public void WriteFloat(float f)
+    {
+        writer.Write(f);
+    }
+
+    public void WriteVector(Vector2 v)
+    {
+        writer.Write(v.x);
+        writer.Write(v.y);
+    }
+
+    public void WriteVector(Vector3 v)
+    {
+        writer.Write(v.x);
+        writer.Write(v.y);
+        writer.Write(v.z);
+    }
+    public void WriteVector(string strHeader, Vector3 v)
+    {
+        writer.Write(strHeader);
+        writer.Write(v.x);
+        writer.Write(v.y);
+        writer.Write(v.z);
+    }
+    public void WriteVector(Vector4 v)
+    {
+        writer.Write(v.x);
+        writer.Write(v.y);
+        writer.Write(v.z);
+        writer.Write(v.w);
+    }
+    public void WriteVector(Quaternion q)
+    {
+        writer.Write(q.x);
+        writer.Write(q.y);
+        writer.Write(q.z);
+        writer.Write(q.w);
+    }
+    public void WriteColor(Color c)
+    {
+        writer.Write(c.r);
+        writer.Write(c.g);
+        writer.Write(c.b);
+        writer.Write(c.a);
+    }
+
+    public void WriteColor(string strHeader, Color c)
+    {
+        writer.Write(strHeader);
+        WriteColor(c);
+    }
+
+    public void WriteTextureCoord(Vector2 uv)
+    {
+        writer.Write(uv.x);
+        writer.Write(1.0f - uv.y);
+    }
+    public void WriteVectors(string strHeader, Vector3[] vectors)
+    {
+        writer.Write(strHeader);
+        writer.Write(vectors.Length);
+        if (vectors.Length > 0) foreach (Vector3 v in vectors) WriteVector(v);
+    }
+    public void WriteColors(string strHeader, Color[] colors)
+    {
+        writer.Write(strHeader);
+        writer.Write(colors.Length);
+        if (colors.Length > 0) foreach (Color c in colors) WriteColor(c);
+    }
+
+    public void WriteTextureCoords(string strHeader, Vector2[] uvs)
+    {
+        writer.Write(strHeader);
+        writer.Write(uvs.Length);
+        if (uvs.Length > 0) foreach (Vector2 uv in uvs) WriteTextureCoord(uv);
+    }
+    public void WriteIntegers(string strHeader, int n, int[] pIntegers)
+    {
+        writer.Write(strHeader);
+        writer.Write(n);
+        writer.Write(pIntegers.Length);
+        if (pIntegers.Length > 0) foreach (int i in pIntegers) writer.Write(i);
+    }
+
+    public void WriteBoundingBox(string strHeader, Bounds bounds)
+    {
+        writer.Write(strHeader);
+        WriteVector(bounds.center);
+        WriteVector(bounds.extents);
+    }
+
+    public void WriteMatrix(Matrix4x4 matrix)
+    {
+        writer.Write(matrix.m00);
+        writer.Write(matrix.m10);
+        writer.Write(matrix.m20);
+        writer.Write(matrix.m30);
+        writer.Write(matrix.m01);
+        writer.Write(matrix.m11);
+        writer.Write(matrix.m21);
+        writer.Write(matrix.m31);
+        writer.Write(matrix.m02);
+        writer.Write(matrix.m12);
+        writer.Write(matrix.m22);
+        writer.Write(matrix.m32);
+        writer.Write(matrix.m03);
+        writer.Write(matrix.m13);
+        writer.Write(matrix.m23);
+        writer.Write(matrix.m33);
+    }
+
+
+    public void WriteVector(string strHeader, Quaternion q)
+    {
+        writer.Write(strHeader);
+        WriteVector(q);
+    }
+
+    public void WriteTransform(string strHeader, Transform current)
+    {
+        writer.Write(strHeader);
+        WriteVector(current.localPosition);
+        WriteVector(current.localEulerAngles);
+        WriteVector(current.localScale);
+        WriteVector(current.localRotation);
+
+        Matrix4x4 matrix = Matrix4x4.identity;
+        matrix.SetTRS(current.localPosition, current.localRotation, current.localScale);
+        WriteMatrix(matrix);
+    }
+    public void WriteTransform(Transform current)
+    {
+        WriteVector(current.localPosition);
+        WriteVector(current.localEulerAngles);
+        WriteVector(current.localScale);
+        WriteVector(current.localRotation);
+
+        Matrix4x4 matrix = Matrix4x4.identity;
+        matrix.SetTRS(current.localPosition, current.localRotation, current.localScale);
+        WriteMatrix(matrix);
+    }
+
+
+    public void WriteMeshInfo(Mesh mesh)
+    {
+        WriteInteger(mesh.vertexCount);
+        WriteBoundingBox("<Bounds>:", mesh.bounds);
+
+        if ((mesh.vertices != null) && (mesh.vertices.Length > 0)) WriteVectors("<Positions>:", mesh.vertices);
+        if ((mesh.colors != null) && (mesh.vertices.Length > 0)) WriteColors("<Colors>:", mesh.colors);
+        if ((mesh.uv != null) && (mesh.uv.Length > 0)) WriteTextureCoords("<TextureCoords0>:", mesh.uv);
+        if ((mesh.uv2 != null) && (mesh.uv2.Length > 0)) WriteTextureCoords("<TextureCoords1>:", mesh.uv2);
+        if ((mesh.normals != null) && (mesh.normals.Length > 0)) WriteVectors("<Normals>:", mesh.normals);
+
+        if ((mesh.normals.Length > 0) && (mesh.tangents.Length > 0))
+        {
+            Vector3[] tangents = new Vector3[mesh.tangents.Length];
+            Vector3[] biTangents = new Vector3[mesh.tangents.Length];
+            for (int i = 0; i < mesh.tangents.Length; i++)
+            {
+                tangents[i] = new Vector3(mesh.tangents[i].x, mesh.tangents[i].y, mesh.tangents[i].z);
+            }
+
+            WriteVectors("<Tangents>:", tangents);
+        }
+
+        WriteInteger("<SubMeshes>:", mesh.subMeshCount);
+        if (mesh.subMeshCount > 0)
+        {
+            for (int i = 0; i < mesh.subMeshCount; i++)
+            {
+                int[] subindicies = mesh.GetTriangles(i);
+                WriteIntegers("<SubMesh>:", i, subindicies);
+            }
+        }
+
+        WriteString("</Mesh>");
+    }
+
+    public void WriteMaterial(Material material)
+    {
+        WriteObjectName(material);
+
+        string shaderName = material.shader.name;
+
+        WriteObjectName(material.shader);
+
+        switch (shaderName)
+        {
+            case "SyntyStudios/Basic_LOD_Shader":
+
+                WriteTextureName("<AlbedoMap>:", material.GetTexture("_Albedo"));
+                WriteColor("<AlbedoColor>:", material.GetColor("_AlbedoColour"));
+
+                WriteFloat("<Smoothness>:", material.GetFloat("_Smoothness"));
+
+                WriteFloat("<Metallic>:", material.GetFloat("_Metallic"));
+
+                WriteTextureName("<NormalMap>:", material.GetTexture("_NormalMap"));
+
+                break;
+            case "SyntyStudios/SkyboxUnlit":
+                WriteColor("<TopColor>:", material.GetColor("_ColorTop"));
+                WriteColor("<BottomColor>:", material.GetColor("_ColorBottom"));
+                WriteFloat("<Offset>:", material.GetFloat("_Offset"));
+                WriteFloat("<Distance>:", material.GetFloat("_Distance"));
+
+                WriteFloat("<Falloff>:", material.GetFloat("_Falloff"));
+
+                break;
+            case "SyntyStudios/Triplanar_01":
+            case "SyntyStudios/Triplanar_Basic":
+
+                WriteTextureName("<SidesMap>:", material.GetTexture("_Sides"));
+                WriteTextureName("<SidesNormalMap>:", material.GetTexture("_SidesNormal"));
+
+                WriteTextureName("<TopMap>:", material.GetTexture("_Top"));
+                WriteTextureName("<TopNormalMap>:", material.GetTexture("_TopNormal"));
+
+                WriteFloat("<FallOff>:", material.GetFloat("_FallOff"));
+                WriteFloat("<Tiling>:", material.GetFloat("_Tiling"));
+
+
+
+                break;
+            case "SyntyStudios/VegitationShader":
+            case "SyntyStudios/VegitationShader_Basic":
+
+                WriteTextureName("<LeafAlbedoMap>:", material.GetTexture("_LeafTex"));
+                WriteTextureName("<LeafNormalMap>:", material.GetTexture("_LeafNormalMap"));
+                WriteColor("<LeafAlbedoColor>:", material.GetColor("_LeafBaseColour"));
+                WriteFloat("<LeafSmoothness>:", material.GetFloat("_LeafSmoothness"));
+                WriteFloat("<LeafMetallic>:", material.GetFloat("_LeafMetallic"));
+
+                WriteTextureName("<TrunkAlbedoMap>:", material.GetTexture("_TunkTex"));
+                WriteTextureName("<TrunkNormalMap>:", material.GetTexture("_TrunkNormalMap"));
+                WriteColor("<TrunkAlbedoColor>:", material.GetColor("_TrunkBaseColour"));
+                WriteFloat("<TrunkSmoothness>:", material.GetFloat("_TrunkSmoothness"));
+                WriteFloat("<TrunkMetallic>:", material.GetFloat("_TrunkMetallic"));
+
+                break;
+            case "Universal Render Pipeline/Lit":
+
+                WriteTextureName("<AlbedoMap>:", material.GetTexture("_BaseMap"));
+                WriteColor("<AlbedoColor>:", material.GetColor("_BaseColor"));
+
+                WriteFloat("<Smoothness>:", material.GetFloat("_Smoothness"));
+
+                WriteTextureName("<MetallicMap>:", material.GetTexture("_MetallicGlossMap"));
+                WriteFloat("<Metallic>:", material.GetFloat("_Metallic"));
+
+                WriteTextureName("<SpecularMap>:", material.GetTexture("_SpecGlossMap"));
+                WriteColor("<Specular>:", material.GetColor("_SpecColor"));
+
+                WriteTextureName("<NormalMap>:", material.GetTexture("_BumpMap"));
+
+                break;
+            default:
+                return;
+        }
+
+        WriteString("</Material>");
+    }
+
+    public void WriteTerrainData(TerrainData terrainData)
+    {
+        WriteObjectName(terrainData);
+
+        WriteInteger(terrainData.heightmapResolution); 
+        WriteVector(terrainData.size);
+
+        int alphaMapCnt = terrainData.alphamapTextureCount;
+        WriteInteger(alphaMapCnt);
+
+        Texture2D[] alphaMaps = terrainData.alphamapTextures;
+
+        int i = 0;
+        foreach(Texture2D alphaMap in alphaMaps)
+        {
+            string name = terrainData.name + $"_splatmap_{i++}";
+            WriteString(name);
+        }
+        TerrainLayer[] terrainLayers = terrainData.terrainLayers;
+        int cnt = 0;
+        WriteInteger(terrainLayers.Length);
+        foreach (TerrainLayer terrainLayer in terrainLayers)
+        {
+            WriteTextureName(terrainLayer.diffuseTexture);
+            WriteTextureName(terrainLayer.normalMapTexture);
+            WriteFloat(terrainLayer.metallic);
+            WriteFloat(terrainLayer.smoothness);
+            cnt++;
+        }
+    }
+
+    public Bounds WriteFrameInfo(Transform current)
+    {
+        string tag = current.gameObject.tag;
+        WriteObjectName("<Frame>:", current.gameObject);
+        WriteString("<Tag>:");
+        WriteString(tag);
+        WriteTransform("<Transform>:", current);
+
+        MeshFilter meshFilter = current.gameObject.GetComponent<MeshFilter>();
+        MeshRenderer meshRenderer = current.gameObject.GetComponent<MeshRenderer>();
+
+        Bounds bounds = new Bounds();
+
+        if (meshFilter && meshRenderer)
+        {
+            WriteObjectName("<Mesh>:", meshFilter.sharedMesh);
+            bounds = meshRenderer.bounds;
+
+            Material[] materials = meshRenderer.sharedMaterials;
+            WriteInteger(materials.Length);
+            if (materials.Length > 0)
+            {
+                foreach (Material mat in materials)
                 {
-                    WriteObject(prefabSource);
-                    prefabSources[prefabPath] = prefabSource;
+                    WriteObjectName(mat);
                 }
             }
         }
-        WriteString("</Prefabs>");
+        switch (tag)
+        {
+            case "Light":
+                break;
+            case "MainCamera":
+                break;
+            case "Skydome":
+                break;
+            case "FogRing":
+                break;
+            case "Terrain":
+                {
+                    Terrain terrain = current.gameObject.GetComponent<Terrain>();
+                    WriteTerrain(terrain);
+                }
+                break;
+            default:
+                break;
+        }
+
+        BoxCollider collider = new();
+        if (current.TryGetComponent<BoxCollider>(out collider))
+        {
+            WriteString("<Collider>:");
+            WriteVector(collider.center);
+            WriteVector(collider.size);
+        }
+
+        return bounds;
+    }
+
+    public Bounds WriteFrameHierarchyInfo(Transform child, bool isPrefabable)
+    {
+        Bounds bounds = new Bounds();
+
+        if (isPrefabable && PrefabUtility.IsOutermostPrefabInstanceRoot(child.gameObject)) {
+            GameObject prefabSource = (GameObject)PrefabUtility.GetCorrespondingObjectFromSource(child.gameObject);
+            WriteObjectName("<Prefab>:", prefabSource);
+            WriteTransform(child);
+        }
+        else {
+            bounds = WriteFrameInfo(child);
+            WriteInteger("<Children>:", child.childCount);
+
+            if (child.childCount > 0)
+            {
+                for (int k = 0; k < child.childCount; k++)
+                {
+                    bounds.Encapsulate(WriteFrameHierarchyInfo(child.GetChild(k), isPrefabable));
+                }
+            }
+
+            WriteString("</Frame>");
+        }
+
+        return bounds;
+    }
+
+    public void WriteTerrain(Terrain terrain)
+    {
+        WriteString("<Terrain>:");
+        TerrainData terrainData = terrain.terrainData;
+        WriteTerrainData(terrainData);
+        WriteVector(terrain.gameObject.transform.position);
+    }
+
+    public void WriteObject(GameObject gameObject, bool isPrefabable)
+    {
+        Transform transform = gameObject.transform;
+        Bounds combinedBounds = WriteFrameHierarchyInfo(transform, isPrefabable);
+
+        Vector3 sphereCenter = transform.InverseTransformPoint(combinedBounds.center);
+        float radius = combinedBounds.extents.magnitude;
+        float maxScale = Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
+        radius /= maxScale;
+
+        WriteVector(sphereCenter);
+        WriteFloat(radius);
+
+        switch (gameObject.tag)
+        {
+            case "Light":
+                break;
+            case "MainCamera":
+                break;
+            case "Skydome":
+                break;
+            case "FogRing":
+                break;
+            case "Terrain":
+                break;
+            default:
+                break;
+        }
+    }
+
+}
+
+public class SceneObjectExporter
+{
+    [MenuItem("Scene/Export Scene")]
+    static void ExportAllObjects()
+    {
+        GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
+        Dictionary<string, GameObject> prefabSources = new Dictionary<string, GameObject>();
+
+        string filePath = EditorUtility.SaveFilePanel("Save Scene bin", "Assets", "Scene.bin", "bin");
+        if (string.IsNullOrEmpty(filePath)) return;
+
+        MyBinaryWriter binaryWriter = new MyBinaryWriter(filePath);
+
+        ExportResources(allObjects, binaryWriter);
 
         foreach (GameObject obj in allObjects)
         {
-
+            if(!obj.activeSelf) continue;
+            if (PrefabUtility.IsOutermostPrefabInstanceRoot(obj))
+            {
+                GameObject prefabSource = (GameObject)PrefabUtility.GetCorrespondingObjectFromSource(obj);
+                if (!prefabSources.ContainsKey(prefabSource.name))
+                {
+                    prefabSources[prefabSource.name] = prefabSource;
+                }
+            }
         }
 
+        binaryWriter.WriteInteger(prefabSources.Count);
+        foreach (GameObject obj in prefabSources.Values)
+        {
+            binaryWriter.WriteObject(obj, false);
+        }
 
-        binaryWriter.Flush();
-        binaryWriter.Close();*/
+        GameObject[] rootObjects = UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects();
+        int activeRootCount = 0;
+        foreach (GameObject root in rootObjects)
+        {
+            if (root.activeInHierarchy)
+            {
+                activeRootCount++;
+            }
+        }
+
+        binaryWriter.WriteInteger(activeRootCount);
+        foreach (GameObject obj in rootObjects)
+        {
+            if (!obj.activeSelf) continue;
+            binaryWriter.WriteObject(obj, true);
+        }
+
+        binaryWriter.Close();
+        Debug.Log($"씬 추출 완료");
     }
 
-    static void ExportResources()
+    [MenuItem("Scene/Export Objects Mesh")]
+    static void ExportObjectsMesh()
     {
+        // 현재 씬의 모든 GameObject 추출
         GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
+        Dictionary<string, Mesh> sceneMeshes = new Dictionary<string, Mesh>();
 
+        foreach (GameObject obj in allObjects)
+        {
+            MeshFilter meshFilter = obj.GetComponent<MeshFilter>();
+            if (meshFilter != null && meshFilter.sharedMesh != null)
+            {
+                string meshName = meshFilter.sharedMesh.name;
+                if (!sceneMeshes.ContainsKey(meshName))
+                {
+                    sceneMeshes[meshName] = meshFilter.sharedMesh;
+                }
+            }
+        }
+
+        int total = sceneMeshes.Count;
+        int current = 0;
+        foreach (Mesh mesh in sceneMeshes.Values)
+        {
+            current++;
+
+            string filePath = "./Meshes/" + string.Copy(mesh.name).Replace(" ", "_") + ".bin";
+            if (!string.IsNullOrEmpty(filePath)) {
+                MyBinaryWriter writer = new(filePath);
+                writer.WriteMeshInfo(mesh);
+
+                writer.Close();
+            }
+            EditorUtility.DisplayProgressBar("Exporting Meshes", $"Processing {current}/{total}", (float)current / total);
+
+        }
+        EditorUtility.ClearProgressBar();
+    }
+
+    static void ExportResources(GameObject[] allObjects, MyBinaryWriter writer)
+    {
         Dictionary<string, Mesh> sceneMeshes = new Dictionary<string, Mesh>();
         Dictionary<string, Material> sceneMaterials = new Dictionary<string, Material>();
 
@@ -92,527 +635,20 @@ public class SceneObjectExporter
             }
         }
         //리소스 추출
-        string filePath = EditorUtility.SaveFilePanel("Save Scene Resource bin", "Assets", "SceneResource.bin", "bin");
-        if (string.IsNullOrEmpty(filePath)) return;
+        writer.WriteInteger(sceneMeshes.Count);
 
-        binaryWriter = new BinaryWriter(File.Open(filePath, FileMode.Create));
-
-        int i = 0;
-        WriteString("<Meshes:>");
         foreach (Mesh mesh in sceneMeshes.Values)
         {
-            i++;
-            WriteMeshInfo(mesh);
-            if (i == 30) break;
+            writer.WriteObjectName(mesh);
         }
-        WriteString("</Meshes>");
 
-        WriteString("<Materials:>");
+        writer.WriteInteger(sceneMaterials.Count);
         foreach (Material material in sceneMaterials.Values)
         {
-            WriteMaterial(material);
+            writer.WriteMaterial(material);
         }
-        WriteString("</Materials>");
-
-        binaryWriter.Flush();
-        binaryWriter.Close();
 
         Debug.Log($"리소스 추출 완료");
     }
 
-    static bool FindResourcesByName(List<string> pTextureNamesList, Object resource)
-    {
-        if (resource)
-        {
-            string strTextureName = string.Copy(resource.name).Replace(" ", "_");
-            for (int i = 0; i < pTextureNamesList.Count; i++)
-            {
-                if (pTextureNamesList.Contains(strTextureName)) return (true);
-            }
-            pTextureNamesList.Add(strTextureName);
-            return (false);
-        }
-        else
-        {
-            return (true);
-        }
-    }
-
-    static void WriteObjectName(Object obj)
-    {
-        binaryWriter.Write((obj) ? string.Copy(obj.name).Replace(" ", "_") : "null");
-    }
-
-    static void WriteObjectName(int i, Object obj)
-    {
-        binaryWriter.Write(i);
-        binaryWriter.Write((obj) ? string.Copy(obj.name).Replace(" ", "_") : "null");
-    }
-
-    static void WriteObjectName(string strHeader, Object obj)
-    {
-        binaryWriter.Write(strHeader);
-        binaryWriter.Write((obj) ? string.Copy(obj.name).Replace(" ", "_") : "null");
-    }
-
-    static void WriteObjectName(string strHeader, int i, Object obj)
-    {
-        binaryWriter.Write(strHeader);
-        binaryWriter.Write((obj) ? string.Copy(obj.name).Replace(" ", "_") : "null");
-        binaryWriter.Write(i);
-    }
-
-    static void WriteObjectName(string strHeader, int i, int j, Object obj)
-    {
-        binaryWriter.Write(strHeader);
-        binaryWriter.Write(i);
-        binaryWriter.Write(j);
-        binaryWriter.Write((obj) ? string.Copy(obj.name).Replace(" ", "_") : "null");
-    }
-
-    static void WriteObjectName(string strHeader, int i, Object obj, float f, int j, int k)
-    {
-        binaryWriter.Write(strHeader);
-        binaryWriter.Write(i);
-        binaryWriter.Write((obj) ? string.Copy(obj.name).Replace(" ", "_") : "null");
-        binaryWriter.Write(f);
-        binaryWriter.Write(j);
-        binaryWriter.Write(k);
-    }
-
-    static void WriteString(string strToWrite)
-    {
-        binaryWriter.Write(strToWrite);
-    }
-
-    static void WriteString(string strHeader, string strToWrite)
-    {
-        binaryWriter.Write(strHeader);
-        binaryWriter.Write(strToWrite);
-    }
-
-    static void WriteString(string strToWrite, int i)
-    {
-        binaryWriter.Write(strToWrite);
-        binaryWriter.Write(i);
-    }
-
-    static void WriteString(string strToWrite, int i, float f)
-    {
-        binaryWriter.Write(strToWrite);
-        binaryWriter.Write(i);
-        binaryWriter.Write(f);
-    }
-
-    static void WriteTextureName(string strHeader, Texture texture)
-    {
-        binaryWriter.Write(strHeader);
-        if (texture)
-        {
-            binaryWriter.Write(string.Copy(texture.name).Replace(" ", "_"));
-        }
-        else
-        {
-            binaryWriter.Write("null");
-        }
-    }
-
-    static void WriteInteger(int i)
-    {
-        binaryWriter.Write(i);
-    }
-
-    static void WriteInteger(string strHeader, int i)
-    {
-        binaryWriter.Write(strHeader);
-        binaryWriter.Write(i);
-    }
-
-    static void WriteFloat(string strHeader, float f)
-    {
-        binaryWriter.Write(strHeader);
-        binaryWriter.Write(f);
-    }
-
-    static void WriteVector(Vector2 v)
-    {
-        binaryWriter.Write(v.x);
-        binaryWriter.Write(v.y);
-    }
-
-    static void WriteVector(string strHeader, Vector2 v)
-    {
-        binaryWriter.Write(strHeader);
-        WriteVector(v);
-    }
-
-    static void WriteVector(Vector3 v)
-    {
-        binaryWriter.Write(v.x);
-        binaryWriter.Write(v.y);
-        binaryWriter.Write(v.z);
-    }
-
-    static void WriteVector(string strHeader, Vector3 v)
-    {
-        binaryWriter.Write(strHeader);
-        WriteVector(v);
-    }
-
-    static void WriteVector(Vector4 v)
-    {
-        binaryWriter.Write(v.x);
-        binaryWriter.Write(v.y);
-        binaryWriter.Write(v.z);
-        binaryWriter.Write(v.w);
-    }
-
-    static void WriteVector(string strHeader, Vector4 v)
-    {
-        binaryWriter.Write(strHeader);
-        WriteVector(v);
-    }
-
-    static void WriteVector(Quaternion q)
-    {
-        binaryWriter.Write(q.x);
-        binaryWriter.Write(q.y);
-        binaryWriter.Write(q.z);
-        binaryWriter.Write(q.w);
-    }
-
-    static void WriteVector(string strHeader, Quaternion q)
-    {
-        binaryWriter.Write(strHeader);
-        WriteVector(q);
-    }
-
-    static void WriteColor(Color c)
-    {
-        binaryWriter.Write(c.r);
-        binaryWriter.Write(c.g);
-        binaryWriter.Write(c.b);
-        binaryWriter.Write(c.a);
-    }
-
-    static void WriteColor(string strHeader, Color c)
-    {
-        binaryWriter.Write(strHeader);
-        WriteColor(c);
-    }
-
-    static void WriteTextureCoord(Vector2 uv)
-    {
-        binaryWriter.Write(uv.x);
-        binaryWriter.Write(1.0f - uv.y);
-    }
-
-    static void WriteVectors(string strHeader, Vector2[] vectors)
-    {
-        binaryWriter.Write(strHeader);
-        binaryWriter.Write(vectors.Length);
-        if (vectors.Length > 0) foreach (Vector2 v in vectors) WriteVector(v);
-    }
-
-    static void WriteVectors(string strHeader, Vector3[] vectors)
-    {
-        binaryWriter.Write(strHeader);
-        binaryWriter.Write(vectors.Length);
-        if (vectors.Length > 0) foreach (Vector3 v in vectors) WriteVector(v);
-    }
-
-    static void WriteVectors(string strHeader, Vector4[] vectors)
-    {
-        binaryWriter.Write(strHeader);
-        binaryWriter.Write(vectors.Length);
-        if (vectors.Length > 0) foreach (Vector4 v in vectors) WriteVector(v);
-    }
-
-    static void WriteColors(string strHeader, Color[] colors)
-    {
-        binaryWriter.Write(strHeader);
-        binaryWriter.Write(colors.Length);
-        if (colors.Length > 0) foreach (Color c in colors) WriteColor(c);
-    }
-
-    static void WriteTextureCoords(string strHeader, Vector2[] uvs)
-    {
-        binaryWriter.Write(strHeader);
-        binaryWriter.Write(uvs.Length);
-        if (uvs.Length > 0) foreach (Vector2 uv in uvs) WriteTextureCoord(uv);
-    }
-
-    static void WriteIntegers(int[] pIntegers)
-    {
-        binaryWriter.Write(pIntegers.Length);
-        foreach (int i in pIntegers) binaryWriter.Write(i);
-    }
-
-    static void WriteIntegers(string strHeader, int[] pIntegers)
-    {
-        binaryWriter.Write(strHeader);
-        binaryWriter.Write(pIntegers.Length);
-        if (pIntegers.Length > 0) foreach (int i in pIntegers) binaryWriter.Write(i);
-    }
-
-    static void WriteIntegers(string strHeader, int n, int[] pIntegers)
-    {
-        binaryWriter.Write(strHeader);
-        binaryWriter.Write(n);
-        binaryWriter.Write(pIntegers.Length);
-        if (pIntegers.Length > 0) foreach (int i in pIntegers) binaryWriter.Write(i);
-    }
-
-    static void WriteBoundingBox(string strHeader, Bounds bounds)
-    {
-        binaryWriter.Write(strHeader);
-        WriteVector(bounds.center);
-        WriteVector(bounds.extents);
-    }
-
-    static void WriteMatrix(Matrix4x4 matrix)
-    {
-        binaryWriter.Write(matrix.m00);
-        binaryWriter.Write(matrix.m10);
-        binaryWriter.Write(matrix.m20);
-        binaryWriter.Write(matrix.m30);
-        binaryWriter.Write(matrix.m01);
-        binaryWriter.Write(matrix.m11);
-        binaryWriter.Write(matrix.m21);
-        binaryWriter.Write(matrix.m31);
-        binaryWriter.Write(matrix.m02);
-        binaryWriter.Write(matrix.m12);
-        binaryWriter.Write(matrix.m22);
-        binaryWriter.Write(matrix.m32);
-        binaryWriter.Write(matrix.m03);
-        binaryWriter.Write(matrix.m13);
-        binaryWriter.Write(matrix.m23);
-        binaryWriter.Write(matrix.m33);
-    }
-
-    static void WriteMatrix(Vector3 position, Quaternion rotation, Vector3 scale)
-    {
-        Matrix4x4 matrix = Matrix4x4.identity;
-        matrix.SetTRS(position, rotation, scale);
-        WriteMatrix(matrix);
-    }
-
-    static void WriteTransform(string strHeader, Transform current)
-    {
-        binaryWriter.Write(strHeader);
-        WriteVector(current.localPosition);
-        WriteVector(current.localEulerAngles);
-        WriteVector(current.localScale);
-        WriteVector(current.localRotation);
-    }
-
-    static void WriteLocalMatrix(string strHeader, Transform current)
-    {
-        binaryWriter.Write(strHeader);
-        Matrix4x4 matrix = Matrix4x4.identity;
-        matrix.SetTRS(current.localPosition, current.localRotation, current.localScale);
-        WriteMatrix(matrix);
-    }
-
-    static void WriteWorldMatrix(string strHeader, Transform current)
-    {
-        binaryWriter.Write(strHeader);
-        Matrix4x4 matrix = Matrix4x4.identity;
-        matrix.SetTRS(current.position, current.rotation, current.lossyScale);
-        WriteMatrix(matrix);
-    }
-
-    static void WriteMatrixes(string strHeader, Matrix4x4[] matrixes)
-    {
-        WriteString(strHeader, matrixes.Length);
-        if (matrixes.Length > 0)
-        {
-            foreach (Matrix4x4 matrix in matrixes) WriteMatrix(matrix);
-        }
-    }
-
-    static void WriteMeshInfo(Mesh mesh)
-    {
-        WriteObjectName("<Mesh>:", mesh);
-
-        WriteInteger(mesh.vertexCount);
-
-
-        WriteBoundingBox("<Bounds>:", mesh.bounds);
-
-        if ((mesh.vertices != null) && (mesh.vertices.Length > 0)) WriteVectors("<Positions>:", mesh.vertices);
-        if ((mesh.colors != null) && (mesh.colors.Length > 0)) WriteColors("<Colors>:", mesh.colors);
-        if ((mesh.uv != null) && (mesh.uv.Length > 0)) WriteTextureCoords("<TextureCoords0>:", mesh.uv);
-        if ((mesh.uv2 != null) && (mesh.uv2.Length > 0)) WriteTextureCoords("<TextureCoords1>:", mesh.uv2);
-        if ((mesh.normals != null) && (mesh.normals.Length > 0)) WriteVectors("<Normals>:", mesh.normals);
-
-        if ((mesh.normals.Length > 0) && (mesh.tangents.Length > 0))
-        {
-            Vector3[] tangents = new Vector3[mesh.tangents.Length];
-            Vector3[] biTangents = new Vector3[mesh.tangents.Length];
-            for (int i = 0; i < mesh.tangents.Length; i++)
-            {
-                tangents[i] = new Vector3(mesh.tangents[i].x, mesh.tangents[i].y, mesh.tangents[i].z);
-                biTangents[i] = Vector3.Normalize(Vector3.Cross(mesh.normals[i], tangents[i])) * mesh.tangents[i].w;
-            }
-
-            WriteVectors("<Tangents>:", tangents);
-            WriteVectors("<BiTangents>:", biTangents);
-        }
-
-        WriteInteger("<SubMeshes>:", mesh.subMeshCount);
-        if (mesh.subMeshCount > 0)
-        {
-            for (int i = 0; i < mesh.subMeshCount; i++)
-            {
-                int[] subindicies = mesh.GetTriangles(i);
-                WriteIntegers("<SubMesh>:", i, subindicies);
-            }
-        }
-        WriteString("</Mesh>");
-
-    }
-
-    static void WriteMaterial(Material material)
-    {
-        WriteObjectName("<Material>:", material);
-
-        string shaderName = material.shader.name;
-
-        WriteObjectName("<Shader>:", material.shader);
-
-        switch (shaderName)
-        {
-            case "SyntyStudios/Basic_LOD_Shader":
-
-                WriteTextureName("<AlbedoMap>:", material.GetTexture("_Albedo"));
-                WriteColor("<AlbedoColor>:", material.GetColor("_AlbedoColour"));
-
-                WriteFloat("<Smoothness>:", material.GetFloat("_Smoothness"));
-
-                WriteFloat("<Metallic>:", material.GetFloat("_Metallic"));
-
-                WriteTextureName("<NormalMap>:", material.GetTexture("_NormalMap"));
-
-                break;
-            case "SyntyStudios/Triplanar_01":
-            case "SyntyStudios/Triplanar_Basic":
-
-                WriteTextureName("<SidesMap>:", material.GetTexture("_Sides"));
-                WriteTextureName("<SidesNormalMap>:", material.GetTexture("_SidesNormal"));
-
-                WriteTextureName("<TopMap>:", material.GetTexture("_Top"));
-                WriteTextureName("<TopNormalMap>:", material.GetTexture("_TopNormal"));
-
-                WriteFloat("<FallOff>:", material.GetFloat("_FallOff"));
-                WriteFloat("<Tiling>:", material.GetFloat("_Tiling"));
-
-                break;
-            case "SyntyStudios/VegitationShader":
-            case "SyntyStudios/VegitationShader_Basic":
-
-                WriteTextureName("<LeafAlbedoMap>:", material.GetTexture("_LeafTex"));
-                WriteTextureName("<LeafNormalMap>:", material.GetTexture("_LeafNormalMap"));
-                WriteColor("<LeafAlbedoColor>:", material.GetColor("_LeafBaseColour"));
-                WriteFloat("<LeafSmoothness>:", material.GetFloat("_LeafSmoothness"));
-                WriteFloat("<LeafMetallic>:", material.GetFloat("_LeafMetallic"));
-
-                WriteTextureName("<TrunkAlbedoMap>:", material.GetTexture("_TunkTex"));
-                WriteTextureName("<TrunkNormalMap>:", material.GetTexture("_TrunkNormalMap"));
-                WriteColor("<TrunkAlbedoColor>:", material.GetColor("_TrunkBaseColour"));
-                WriteFloat("<TrunkSmoothness>:", material.GetFloat("_TrunkSmoothness"));
-                WriteFloat("<TrunkMetallic>:", material.GetFloat("_TrunkMetallic"));
-
-                WriteTextureName("<EmissiveMap>:", material.GetTexture("_EmissiveMask") ?? material.GetTexture("_TrunkEmissiveMask"));
-                WriteColor("<EmissiveColor>:", material.GetColor("_EmissionColor"));
-
-                break;
-            case "Universal Render Pipeline/Lit":
-
-                WriteTextureName("<AlbedoMap>:", material.GetTexture("_BaseMap"));
-                WriteColor("<AlbedoColor>:", material.GetColor("_BaseColor"));
-
-                WriteFloat("<Smoothness>:", material.GetFloat("_Smoothness"));
-
-                WriteTextureName("<MetallicMap>:", material.GetTexture("_MetallicGlossMap"));
-                WriteFloat("<Metallic>:", material.GetFloat("_Metallic"));
-
-                WriteTextureName("<SpecularMap>:", material.GetTexture("_SpecGlossMap"));
-                WriteColor("<Specular>:", material.GetColor("_SpecColor"));
-
-                WriteTextureName("<NormalMap>:", material.GetTexture("_BumpMap"));
-
-                break;
-            default:
-                break;
-        }
-
-        WriteString("</Material>");
-    }
-
-    static void WriteFrameInfo(Transform current)
-    {
-        WriteTransform("<Transform>:", current);
-        WriteLocalMatrix("<TransformMatrix>:", current);
-
-        MeshFilter meshFilter = current.gameObject.GetComponent<MeshFilter>();
-        MeshRenderer meshRenderer = current.gameObject.GetComponent<MeshRenderer>();
-
-        if (meshFilter && meshRenderer)
-        {
-            WriteMeshInfo(meshFilter.sharedMesh);
-
-            if (!hasBounds)
-            {
-                combinedBounds = meshRenderer.bounds;
-                hasBounds = true;
-            }
-            else
-            {
-                combinedBounds.Encapsulate(meshRenderer.bounds);
-            }
-
-            Material[] materials = meshRenderer.materials;
-            WriteInteger(materials.Length);
-            if (materials.Length > 0)
-            {
-                foreach(Material mat in materials)
-                {
-                    WriteObjectName(mat);
-                }
-            }
-        }
-    }
-
-    static void WriteFrameHierarchyInfo(Transform child)
-    {
-        WriteFrameInfo(child);
-
-        WriteInteger("<Children>:", child.childCount);
-
-        if (child.childCount > 0)
-        {
-            for (int k = 0; k < child.childCount; k++)
-            {
-                WriteFrameHierarchyInfo(child.GetChild(k));
-            }
-        }
-
-        WriteString("</Frame>");
-    }
-
-    static void WriteObject(GameObject gameObject)
-    {
-        Transform transform = gameObject.transform;
-        WriteFrameHierarchyInfo(transform);
-
-        Vector3 sphereCenter = transform.InverseTransformPoint(combinedBounds.center);
-        float radius = combinedBounds.extents.magnitude;
-        float maxScale = Mathf.Max(transform.lossyScale.x, transform.lossyScale.y, transform.lossyScale.z);
-        radius /= maxScale;
-
-        WriteVector(sphereCenter);
-        binaryWriter.Write(radius);
-
-    }
 }
